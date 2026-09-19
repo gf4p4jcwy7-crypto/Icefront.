@@ -1,1 +1,79 @@
-index.html
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Icefront</title>
+<style>
+:root{--bg:#07131d;--panel:#102432;--line:#284759;--txt:#eff8ff;--muted:#91aab8;--accent:#36a9e8}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#07131d,#0a1b27);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:540px;margin:auto;padding:calc(env(safe-area-inset-top) + 8px) 12px 28px}
+header{padding:8px 4px 12px}h1{margin:0;font-size:28px}.muted{color:var(--muted);font-size:12px}
+.card{background:rgba(16,36,50,.96);border:1px solid var(--line);border-radius:18px;padding:13px;margin:10px 0}
+.resources{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#0a1b27;border-radius:12px;padding:9px}.ico{font-size:20px}.value{font-weight:800;font-size:15px;margin-top:2px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.tabs button{margin:0}
+button{border:0;border-radius:12px;padding:12px 10px;background:var(--accent);color:white;font-weight:800;font-size:14px}button.secondary{background:#1a3443}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.row button{width:auto;padding:9px 11px}
+.item{padding:11px 0;border-bottom:1px solid #203b4b}.item:last-child{border:0}.bar{height:7px;background:#07131d;border-radius:10px;overflow:hidden;margin-top:7px}.bar>i{display:block;height:100%;width:100%;background:#36a9e8}
+.hidden{display:none}.big{font-size:21px;font-weight:900}.notice{padding:10px;border-radius:12px;background:#0b1c28;color:#bcd0db;font-size:12px}
+</style>
+</head>
+<body>
+<main>
+<header><h1>❄️ Icefront</h1><div class="muted">Prototype mobile autonome • progression instantanée</div></header>
+
+<div class="card">
+  <div class="resources" id="res"></div>
+</div>
+
+<div class="card">
+ <div class="tabs">
+  <button onclick="tab('city')">🏰 Ville</button>
+  <button class="secondary" onclick="tab('heroes')">🦸 Héros</button>
+  <button class="secondary" onclick="tab('alliance')">👥 Alliance</button>
+ </div>
+</div>
+
+<section id="city" class="card"></section>
+<section id="heroes" class="card hidden"></section>
+<section id="alliance" class="card hidden"></section>
+
+<div class="card">
+ <button onclick="fill()">♾️ Ressources illimitées</button>
+ <button class="secondary" onclick="save()">💾 Sauvegarder</button>
+ <button class="secondary" onclick="resetGame()">Réinitialiser la partie</button>
+</div>
+<div class="notice">Prototype indépendant : aucune connexion aux serveurs officiels de Whiteout Survival.</div>
+</main>
+<script>
+const KEY="icefront_v2";
+const initial={
+ res:{food:999999999,wood:999999999,coal:999999999,steel:999999999,gems:999999999,speed:999999999},
+ buildings:{Fournaise:1,Habitation:1,Infirmerie:1,Atelier:1,Académie:1,Entrepôt:1},
+ heroes:{Arlo:1,Lynn:1,Sergey:1,Patrick:1},
+ alliance:{name:"Aube Polaire",members:1,level:1}
+};
+let s=JSON.parse(localStorage.getItem(KEY)||"null")||structuredClone(initial);
+const labels=[["food","🍖","Nourriture"],["wood","🪵","Bois"],["coal","🪨","Charbon"],["steel","🔩","Acier"],["gems","💎","Diamants"],["speed","⚡","Accélérations"]];
+function f(n){return n>=999999999?"∞":n.toLocaleString("fr-FR")}
+function render(){
+ res.innerHTML=labels.map(([k,i,n])=>`<div class="stat"><div class="ico">${i}</div><div class="muted">${n}</div><div class="value">${f(s.res[k])}</div></div>`).join("");
+ city.innerHTML=`<div class="row"><div><div class="big">🏰 Ville</div><div class="muted">Améliorations instantanées</div></div><button onclick="allUp()">Tout améliorer</button></div>`+
+ Object.entries(s.buildings).map(([n,l])=>`<div class="item"><div class="row"><b>🏗️ ${n}</b><button onclick="up('${n}')">Niv. ${l} → ${l+1}</button></div><div class="bar"><i></i></div></div>`).join("");
+ heroes.innerHTML=`<div class="big">🦸 Héros</div>`+
+ Object.entries(s.heroes).map(([n,l])=>`<div class="item"><div class="row"><b>${n}</b><button onclick="hero('${n}')">Niv. ${l} → ${l+1}</button></div><div class="muted">XP illimitée • progression instantanée</div></div>`).join("");
+ alliance.innerHTML=`<div class="big">👥 ${s.alliance.name}</div><p class="muted">Niveau ${s.alliance.level} • ${s.alliance.members} membre</p><button onclick="s.alliance.level++;save();render()">Améliorer l'alliance</button>`;
+}
+function fill(){Object.keys(s.res).forEach(k=>s.res[k]=999999999);save();render()}
+function up(n){s.buildings[n]++;save();render()}
+function allUp(){Object.keys(s.buildings).forEach(k=>s.buildings[k]++);save();render()}
+function hero(n){s.heroes[n]++;save();render()}
+function save(){localStorage.setItem(KEY,JSON.stringify(s))}
+function resetGame(){if(confirm("Réinitialiser ?")){localStorage.removeItem(KEY);location.reload()}}
+function tab(id){["city","heroes","alliance"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}
+render();
+</script>
+</body>
+</html>
